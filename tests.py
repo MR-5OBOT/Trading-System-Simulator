@@ -1,6 +1,3 @@
-# a script to simulate a trading system based on a risk management rules
-# the script simulate fo reach trade independently with the given winrate for real Simulations
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -56,14 +53,17 @@ for i in range(num_trades):
         consecutive_losses += 1
         max_consecutive_losses = max(max_consecutive_losses, consecutive_losses)
         if consecutive_losses >= consecutive_loss_threshold:
-            risk_percentage = max(0.5, risk_percentage / 2)
+            risk_percentage = max(
+                0.5, risk_percentage / 2
+            )  # Ensure risk doesn't drop below 0.5%
             if (
                 consecutive_losses == consecutive_loss_threshold
             ):  # Capture point when threshold is met
                 consecutive_loss_point = i + 1  # Store the current trade number
 
-# Create figure (taller than wide)
-plt.figure(figsize=(2, 10))
+
+# Modify the figure size to be wider
+plt.figure(figsize=(12, 6))
 
 # Plot balance history
 plt.plot(
@@ -76,9 +76,11 @@ plt.plot(
 plt.axhline(initial_balance, color="gray", linestyle="--", label="Initial Balance")
 plt.xlabel("Number of Trades", fontsize=12)
 plt.ylabel("Account Balance", fontsize=12)
-plt.title("Simulated Trading Performance", fontsize=12)
+plt.title(
+    "Simulated Trading Performance with Dynamic Risk Management Strategy", fontsize=12
+)
+
 plt.legend(fontsize=10, loc="upper left")
-plt.grid(color="lightgray", linestyle="--", linewidth=0.2)
 
 # Adding annotations for max drawdown
 plt.scatter(
@@ -88,6 +90,19 @@ plt.scatter(
     label="Max Drawdown Point",
     zorder=10,
 )
+
+# Annotate the max drawdown with its value
+# plt.annotate(
+#     f"Max DD: {max_drawdown:.2%}",
+#     xy=(max_dd_point, balance_history[max_dd_point]),
+#     xytext=(
+#         max_dd_point + num_trades * 0.05,
+#         balance_history[max_dd_point] * 0.95,
+#     ),  # Slight offset
+#     arrowprops=dict(facecolor="red", shrink=0.05),
+#     fontsize=10,
+#     color="red",
+# )
 
 # Adding a watermark
 plt.text(
@@ -103,12 +118,19 @@ plt.text(
     transform=plt.gca().transAxes,
 )
 
-# plt.tight_layout()
-plt.show()
+# Adding input parameters as text
+plt.text(
+    0.012,
+    0.88,  # Position at the top left
+    f"Winrate: {winrate * 100:.2f}%\n"
+    f"Risk-Reward Ratio: {RR}\n"
+    f"Risk %: {initial_risk_percentage}%\n"
+    f"Consecutive Loss Threshold: {consecutive_loss_threshold}",
+    fontsize=9,
+    transform=plt.gca().transAxes,
+    verticalalignment="top",
+    bbox=dict(facecolor="white", alpha=0.2),
+)
 
-# Print final metrics
-print(f"\nFinal Results:")
-print(f"Final Balance: ${balance:,.2f}")
-print(f"Max Drawdown: {max_drawdown:.2%}")
-print(f"Max Consecutive Losses: {max_consecutive_losses}")
-print(f"Total Return: {((balance - initial_balance) / initial_balance):.2%}")
+plt.tight_layout()
+plt.show()
