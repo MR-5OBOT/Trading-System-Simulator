@@ -6,7 +6,7 @@ initial_balance = int(input("Initial balance: "))
 num_trades = int(input("Number of trades: "))
 winrate = float(input("Winrate (as a decimal, e.g., 0.5 for 50%): "))
 RR = float(input("Risk-to-Reward Ratio (e.g., 1.5): "))
-initial_risk_percentage = float(input("Initial risk percentage (e.g., 2.0): "))
+initial_risk_percentage = float(input("Initial risk percentage (e.g., 1.0): "))
 consecutive_loss_threshold = int(input("Consecutive loss threshold: "))
 
 # Initialize variables
@@ -23,7 +23,10 @@ consecutive_loss_point = 0  # Store the point of maximum consecutive losses
 
 # Function to calculate profit/loss per trade
 def trade_result(win, balance, risk):
-    return balance * (risk / 100) * RR if win else -balance * (risk / 100)
+    if win:
+        return balance * (risk / 100) * RR
+    else:
+        return -balance * (risk / 100)
 
 
 # Simulate trades
@@ -47,8 +50,12 @@ for i in range(num_trades):
     # Reset consecutive losses and risk on a win
     if win:
         consecutive_losses = 0
+        # Check if balance is above or equal to initial balance to reset the risk
         if balance >= initial_balance:
             risk_percentage = initial_risk_percentage
+        else:
+            # If below initial balance, keep the current risk percentage
+            risk_percentage = risk_percentage
     else:
         consecutive_losses += 1
         max_consecutive_losses = max(max_consecutive_losses, consecutive_losses)
@@ -60,7 +67,6 @@ for i in range(num_trades):
                 consecutive_losses == consecutive_loss_threshold
             ):  # Capture point when threshold is met
                 consecutive_loss_point = i + 1  # Store the current trade number
-
 
 # Modify the figure size to be wider
 plt.figure(figsize=(12, 6))
@@ -81,6 +87,7 @@ plt.title(
 )
 
 plt.legend(fontsize=10, loc="upper left")
+plt.grid(alpha=0.3)
 
 # Adding annotations for max drawdown
 plt.scatter(
@@ -90,19 +97,6 @@ plt.scatter(
     label="Max Drawdown Point",
     zorder=10,
 )
-
-# Annotate the max drawdown with its value
-# plt.annotate(
-#     f"Max DD: {max_drawdown:.2%}",
-#     xy=(max_dd_point, balance_history[max_dd_point]),
-#     xytext=(
-#         max_dd_point + num_trades * 0.05,
-#         balance_history[max_dd_point] * 0.95,
-#     ),  # Slight offset
-#     arrowprops=dict(facecolor="red", shrink=0.05),
-#     fontsize=10,
-#     color="red",
-# )
 
 # Adding a watermark
 plt.text(
@@ -121,10 +115,10 @@ plt.text(
 # Adding input parameters as text
 plt.text(
     0.012,
-    0.88,  # Position at the top left
+    0.89,  # Position at the top left
     f"Winrate: {winrate * 100:.2f}%\n"
     f"Risk-Reward Ratio: {RR}\n"
-    f"Risk %: {initial_risk_percentage}%\n"
+    f"Starting Risk %: {initial_risk_percentage}%\n"
     f"Consecutive Loss Threshold: {consecutive_loss_threshold}",
     fontsize=9,
     transform=plt.gca().transAxes,
