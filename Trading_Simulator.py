@@ -2,88 +2,129 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Simulation Parameters
-initial_balance = int(input("initial_balance: "))  # Starting account balance
-num_trades = int(input("number of trades: "))  # Number of trades in the simulation
-winrate = float(input("winrate (as a decimal, 0.5 for 50%): "))  # Winrate probability
-RR = float(input("Risk-to-Reward Ratio (e.g., 1.5): "))  # Risk-to-Reward Ratio
-
-# Calculate number of wins and losses based on winrate
-num_wins = int(num_trades * winrate)
-num_losses = num_trades - num_wins
-
-# Generate sequence of wins and losses
-trade_outcomes = [True] * num_wins + [False] * num_losses  # True = win, False = loss
-np.random.shuffle(trade_outcomes)  # Shuffle to randomize order
+initial_balance = int(input("Initial balance: "))
+num_trades = int(input("Number of trades: "))
+winrate = float(input("Winrate (as a decimal, e.g., 0.5 for 50%): "))
+RR = float(input("Risk-to-Reward Ratio (e.g., 1.5): "))
+initial_risk_percentage = float(input("Initial risk percentage (e.g., 1.0): "))
+consecutive_loss_threshold = int(input("Consecutive loss threshold: "))
 
 # Initialize variables
 balance = initial_balance
 balance_history = [balance]
-risk_percentage = 2.0  # Start with 2% risk
-in_drawdown = False  # Track if in drawdown to adjust risk
-consecutive_losses = 0  # Track consecutive losses
+risk_percentage = initial_risk_percentage
+consecutive_losses = 0
+max_consecutive_losses = 0
+peak_balance = initial_balance
+max_drawdown = 0
+max_dd_point = 0  # Store the point of maximum drawdown
+consecutive_loss_point = 0  # Store the point of maximum consecutive losses
 
 
 # Function to calculate profit/loss per trade
 def trade_result(win, balance, risk):
     if win:
-        return balance * (risk / 100) * RR  # Profit
+        return balance * (risk / 100) * RR
     else:
-        return -balance * (risk / 100)  # Loss
+        return -balance * (risk / 100)
 
 
 # Simulate trades
 for i in range(num_trades):
-    # Get the pre-determined trade outcome
-    win = trade_outcomes[i]
+    # Determine if the trade is a win or loss based on the winrate
+    win = np.random.rand() < winrate  # Randomly determine the outcome of the trade
 
-    # Calculate profit or loss based on the current risk
+    # Calculate profit or loss
     profit_loss = trade_result(win, balance, risk_percentage)
-
-    # Update balance
     balance += profit_loss
     balance_history.append(balance)
 
-    # Adjust risk according to drawdown recovery rule
-    if balance < initial_balance:
-        in_drawdown = True
+    # Update peak balance and calculate drawdown
+    if balance > peak_balance:
+        peak_balance = balance
+    current_drawdown = (peak_balance - balance) / peak_balance
+    if current_drawdown > max_drawdown:
+        max_drawdown = current_drawdown
+        max_dd_point = i + 1  # Store the current trade number
 
-    # Adjust risk based on win or loss
+    # Reset consecutive losses and risk on a win
     if win:
-        # Reset consecutive losses on a win
         consecutive_losses = 0
-        if in_drawdown and balance >= initial_balance:
-            # Return to 2% risk after recovery above the initial balance
-            risk_percentage = 2.0
-            in_drawdown = False
+        # Check if balance is above or equal to initial balance to reset the risk
+        if balance >= initial_balance:
+            risk_percentage = initial_risk_percentage
+        else:
+            # If below initial balance, keep the current risk percentage
+            risk_percentage = risk_percentage
     else:
-        # Increment consecutive losses on a loss
         consecutive_losses += 1
-        if consecutive_losses == 1:
-            risk_percentage = 1.0  # Set risk to 1% after first loss
-        elif consecutive_losses >= 2:
-            risk_percentage = 0.5  # Set risk to 0.5% after two or more losses
+        max_consecutive_losses = max(max_consecutive_losses, consecutive_losses)
+        if consecutive_losses >= consecutive_loss_threshold:
+            risk_percentage = max(
+                0.5, risk_percentage / 2
+            )  # Ensure risk doesn't drop below 0.5%
+            if (
+                consecutive_losses == consecutive_loss_threshold
+            ):  # Capture point when threshold is met
+                consecutive_loss_point = i + 1  # Store the current trade number
 
-# Plotting results
-plt.figure(figsize=(10, 6))
-plt.plot(balance_history, label="Balance Over Time")
+# Modify the figure size to be wider
+plt.figure(figsize=(12, 6))
+
+# Plot balance history
+plt.plot(
+    balance_history,
+    label=f"Balance (Max DD: {max_drawdown:.1%}, Max Consec. Losses: {max_consecutive_losses})",
+    color="blue",
+    linewidth=1,
+)
+
 plt.axhline(initial_balance, color="gray", linestyle="--", label="Initial Balance")
-plt.xlabel("Number of Trades")
-plt.ylabel("Account Balance")
-plt.title("Simulated Trading Performance with Dynamic Risk Management Strategy")
-plt.legend()
+plt.xlabel("Number of Trades", fontsize=12)
+plt.ylabel("Account Balance", fontsize=12)
+plt.title(
+    "Simulated Trading Performance with Dynamic Risk Management Strategy", fontsize=12
+)
+
+plt.legend(fontsize=10, loc="upper left")
+plt.grid(alpha=0.3)
+
+# Adding annotations for max drawdown
+plt.scatter(
+    max_dd_point,
+    balance_history[max_dd_point],
+    color="red",
+    label="Max Drawdown Point",
+    zorder=10,
+)
 
 # Adding a watermark
 plt.text(
     0.5,
-    0.5,  # Position in the center of the plot (0.5, 0.5 means center)
-    "Simulated by @MR-ROBOT",  # Text for the watermark
-    fontsize=16,  # Font size for a fancy look
-    color="gray",  # Light color to keep it subtle
-    alpha=0.3,  # Transparency level (0 = fully transparent, 1 = fully opaque)
-    ha="center",  # Horizontal alignment to center
-    va="center",  # Vertical alignment to center
-    rotation=30,  # Rotation for a stylish angle
-    transform=plt.gca().transAxes,  # Transform coordinates to plot axes
+    0.5,
+    "Simulated by @MR-ROBOT",
+    fontsize=17,
+    color="gray",
+    alpha=0.2,
+    ha="center",
+    va="center",
+    rotation=30,
+    transform=plt.gca().transAxes,
 )
 
+# Adding input parameters as text
+plt.text(
+    0.012,
+    0.89,  # Position at the top left
+    f"Winrate: {winrate * 100:.2f}%\n"
+    f"Risk-Reward Ratio: {RR}\n"
+    f"Starting Risk %: {initial_risk_percentage}%\n"
+    f"Consecutive Loss Threshold: {consecutive_loss_threshold}",
+    fontsize=9,
+    transform=plt.gca().transAxes,
+    verticalalignment="top",
+    bbox=dict(facecolor="white", alpha=0.2),
+)
+
+plt.tight_layout()
 plt.show()
