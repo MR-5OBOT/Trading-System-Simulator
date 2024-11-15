@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Simulation Parameters
 initial_balance = int(input("Initial balance: "))
@@ -23,7 +23,7 @@ wins = 0
 for _ in range(num_trades):
     # Determine trade outcome
     is_win = np.random.random() < winrate
-    
+
     # Calculate profit/loss
     risk_amount = balance * (current_risk / 100)
     if is_win:
@@ -46,7 +46,7 @@ for _ in range(num_trades):
     peak_balance = max(peak_balance, balance)
     drawdown = (peak_balance - balance) / peak_balance
     max_drawdown = max(max_drawdown, drawdown)
-    
+
     balances.append(balance)
 
 # Calculate final metrics
@@ -55,23 +55,26 @@ final_return = ((balance - initial_balance) / initial_balance) * 100
 
 # Plot results
 plt.figure(figsize=(10, 6))
-plt.plot(balances, label='Balance', color='blue', linewidth=1)
-plt.axhline(initial_balance, color='gray', linestyle='--', label='Initial Balance')
+plt.plot(balances, label="Balance", color="blue", linewidth=1)
+plt.axhline(initial_balance, color="gray", linestyle="--", label="Initial Balance")
 
 # Add metrics text
-plt.text(0.02, 0.98, 
-         f'Final Balance: ${balance:,.2f}\n'
-         f'Return: {final_return:.1f}%\n'
-         f'Win Rate: {win_rate:.1%}\n'
-         f'Max Drawdown: {max_drawdown:.1%}\n'
-         f'Max Consecutive Losses: {max_consecutive_losses}',
-         transform=plt.gca().transAxes,
-         verticalalignment='top',
-         bbox=dict(facecolor='white', alpha=0.7))
+plt.text(
+    0.02,
+    0.98,
+    f"Final Balance: ${balance:,.2f}\n"
+    f"Return: {final_return:.1f}%\n"
+    f"Win Rate: {win_rate:.1%}\n"
+    f"Max Drawdown: {max_drawdown:.1%}\n"
+    f"Max Consecutive Losses: {max_consecutive_losses}",
+    transform=plt.gca().transAxes,
+    verticalalignment="top",
+    bbox=dict(facecolor="white", alpha=0.7),
+)
 
-plt.title('Trading Simulation Results')
-plt.xlabel('Trade Number')
-plt.ylabel('Account Balance ($)')
+plt.title("Trading Simulation Results")
+plt.xlabel("Trade Number")
+plt.ylabel("Account Balance ($)")
 plt.grid(True, alpha=0.3)
 plt.legend()
 plt.tight_layout()
