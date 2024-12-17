@@ -11,7 +11,7 @@ def simulate_trading(initial_balance, risk_percent, rr_ratio, num_trades):
 
     for trade in range(num_trades):
         risk_amount = balance * (risk_percent / 100)  # formula to get risk by % from current balance
-        # random generation of win or loss with 50% winrate
+        # random generation of win or loss
         if random.random() > 0.5:  # 50% chance to win
             balance += risk_amount * rr_ratio  # Win 2x the risk
             wins += 1
@@ -21,7 +21,7 @@ def simulate_trading(initial_balance, risk_percent, rr_ratio, num_trades):
         balance_history.append(balance)
 
     win_rate = (wins / num_trades) * 100
-    total_return = ((balance - initial_balance) / initial_balance) * 100
+    total_return = ((balance - initial_balance) / initial_balance) * 100  # by %
 
     print(f"Final Balance: ${balance:.2f}")
     print(f"Total Return: {total_return:.2f}%")
@@ -39,9 +39,9 @@ def simulate_trading(initial_balance, risk_percent, rr_ratio, num_trades):
 
 
 # inputs
-initial_balance = 5000
-risk_percent = 1
-rr_ratio = 2
-num_trades = 100
+initial_balance = int(input("initial_balance: "))
+risk_percent = float(input("risk_percent: "))
+rr_ratio = float(input("rr_ratio: "))
+num_trades = int(input("total trades: "))
 
 simulate_trading(initial_balance, risk_percent, rr_ratio, num_trades)
