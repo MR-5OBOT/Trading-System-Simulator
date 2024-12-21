@@ -1,0 +1,29 @@
+{
+  "app-id": "com.mr5obot.Probability_simulator",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "20.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "bin/app",
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=x11",
+    "--socket=wayland",
+    "--talk-name=org.freedesktop.portal.Desktop",
+    "--filesystem=home"
+  ],
+  "modules": [
+    {
+      "name": "trading-simulator",
+      "buildsystem": "simple",
+      "build-commands": ["pip3 install -r requirements.txt --target=/app"],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/yourusername/trading-simulator.git",
+          "branch": "main"
+        }
+      ]
+    }
+  ]
+}
